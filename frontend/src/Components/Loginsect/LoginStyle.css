@@ -1,0 +1,37 @@
+.bg-color {
+	height: 100vh;
+	background:#515ac3;
+    box-shadow: 0 2px 5px 0 rgba(193,200,207,0.3)!important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+	width: 60vw;
+    color: white;
+}
+.flexLogin {
+	display: flex;
+	justify-content: space-between;
+    background-color: #F0F3FD;
+}
+.welcome-txt{
+    font-size: 35px;
+    font-weight: bold;
+}
+.bg-color div {
+	margin-right: 240px;
+}
+.sections{
+ display: flex;
+ align-items: center;
+ gap: 5px;
+}
+
+.right-sect{
+    display: flex;
+    align-items: center;
+    width: 40vw;
+    flex-direction: column;
+    gap: 15px;
+    text-align: left;
+    justify-content: center;
+}

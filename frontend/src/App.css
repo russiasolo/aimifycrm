@@ -1,0 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap");
+
+* {
+	font-family: "Lato", sans-serif;
+}
+.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation0.MuiDrawer-paper.MuiDrawer-paperAnchorLeft.MuiDrawer-paperAnchorDockedLeft.muiltr-12i7wg6-MuiPaper-root-MuiDrawer-paper {
+	left: 0 !important;
+}
+

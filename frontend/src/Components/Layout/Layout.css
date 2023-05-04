@@ -1,0 +1,40 @@
+body {
+	background-color: #f4f6f9 !important;
+	margin: 0;
+	padding: 0;
+}
+/* sidebar css */
+.MuiDrawer-paper {
+	background-color: #ffffff !important;
+	box-shadow: 0px 0px 10px rgba(113, 121, 136, 0.1) !important;
+	left: 0;
+}
+
+.routing a {
+	text-decoration: none;
+	color: #000000;
+	
+}
+/* a:hover .icon-theme { color: #515ac3 !important; } */
+
+a.active .icon-theme {
+	color: #515ac3  !important;
+	text-decoration: none;
+	fill: #515ac3;
+}
+a.active{
+	color: #515ac3  !important;
+	text-decoration: none;
+	fill: #515ac3;
+}
+.icon-theme {
+	color: rgb(119, 119, 119) !important;
+}
+
+/* nav css */
+.MuiAppBar-root {
+	box-shadow: 0px 0px 10px rgba(113, 121, 136, 0.1) !important;
+}
+.muiltr-zz16ud-MuiStack-root{
+	align-items: center;
+}
