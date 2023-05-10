@@ -1,21 +1,41 @@
 from rest_framework import viewsets
-from .models import CustomUser, Student, Teacher, Course, Lesson, Subscription, PricingPlan, EducationalCenter
-from .serializers import (CustomUserSerializer, StudentSerializer, TeacherSerializer, CourseSerializer, LessonSerializer, SubscriptionSerializer, PricingPlanSerializer, EducationalCenterSerializer)
+from .models import (
+    UserGroup,
+    Course,
+    Section,
+    Lesson,
+    CourseMaterial,
+    Enrollment,
+    Schedule,
+    Notification,
+    Report,
+    Payment,
+    Plan,
+    UserProfile,
+    Subscription,
+    UserSubscription,
+)
+from .serializers import (
+    UserGroupSerializer,
+    CourseSerializer,
+    SectionSerializer,
+    LessonSerializer,
+    CourseMaterialSerializer,
+    EnrollmentSerializer,
+    ScheduleSerializer,
+    NotificationSerializer,
+    ReportSerializer,
+    PaymentSerializer,
+    PlanSerializer,
+    UserProfileSerializer,
+    SubscriptionSerializer,
+    UserSubscriptionSerializer,
+)
 
 
-class CustomUserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
-
-
-class StudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-
-
-class TeacherViewSet(viewsets.ModelViewSet):
-    queryset = Teacher.objects.all()
-    serializer_class = TeacherSerializer
+class UserGroupViewSet(viewsets.ModelViewSet):
+    queryset = UserGroup.objects.all()
+    serializer_class = UserGroupSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -23,9 +43,54 @@ class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
 
 
+class SectionViewSet(viewsets.ModelViewSet):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+
+
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+
+
+class CourseMaterialViewSet(viewsets.ModelViewSet):
+    queryset = CourseMaterial.objects.all()
+    serializer_class = CourseMaterialSerializer
+
+
+class EnrollmentViewSet(viewsets.ModelViewSet):
+    queryset = Enrollment.objects.all()
+    serializer_class = EnrollmentSerializer
+
+
+class ScheduleViewSet(viewsets.ModelViewSet):
+    queryset = Schedule.objects.all()
+    serializer_class = ScheduleSerializer
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+
+class ReportViewSet(viewsets.ModelViewSet):
+    queryset = Report.objects.all()
+    serializer_class = ReportSerializer
+
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+
+
+class PlanViewSet(viewsets.ModelViewSet):
+    queryset = Plan.objects.all()
+    serializer_class = PlanSerializer
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
@@ -33,11 +98,6 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
 
 
-class PricingPlanViewSet(viewsets.ModelViewSet):
-    queryset = PricingPlan.objects.all()
-    serializer_class = PricingPlanSerializer
-
-
-class EducationalCenterViewSet(viewsets.ModelViewSet):
-    queryset = EducationalCenter.objects.all()
-    serializer_class = EducationalCenterSerializer
+class UserSubscriptionViewSet(viewsets.ModelViewSet):
+    queryset = UserSubscription.objects.all()
+    serializer_class = UserSubscriptionSerializer
