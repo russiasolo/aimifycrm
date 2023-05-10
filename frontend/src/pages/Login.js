@@ -1,15 +1,14 @@
-import React from 'react'
-import Leftsect from '../Components/Loginsect/Leftsect'
-import Rightsect from '../Components/Loginsect/Rightsect'
+import React from 'react';
+import Leftsect from '../components/Loginsect/Leftsect';
+import Rightsect from '../components/Loginsect/Rightsect';
 
 function Login() {
   return (
     <div className='flexLogin'>
-            <Leftsect/>
-            <Rightsect/>
-
+      <Leftsect />
+      <Rightsect />
     </div>
-  )
+  );
 }
 
-export default Login
+export default Login;
