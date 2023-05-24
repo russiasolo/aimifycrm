@@ -1,217 +1,165 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { makeStyles } from '@mui/styles';
-import Modal from '@mui/material/Modal';
-import CloseIcon from '@mui/icons-material/Close';
-import { Button, TextField, Box, FormControl, InputLabel, Select, MenuItem, IconButton } from '@mui/material/';
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import ReactSelect from 'react-select';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions,
+  Button,
+  FormControl,
+  CircularProgress,
+  Snackbar,
+} from '@mui/material';
 
 import { createCourse, listCourses } from '../../redux/actions/coursesActions';
+import { listStudents } from '../../redux/actions/studentsActions';
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 500,
-    backgroundColor: theme.palette.background.paper,
-    border: '2px solid #000',
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-    marginLeft: '-1.2px',
-  },
-  closeBtn: {
-    position: 'absolute',
-    top: theme.spacing(1),
-    right: theme.spacing(1),
-  },
-}));
-
-export default function NewCourse({ open, onClose }) {
-  const classes = useStyles();
+const NewCourse = ({ open, onClose }) => {
   const dispatch = useDispatch();
-  const [saved, setSaved] = useState(false);
-  const [confirmClose, setConfirmClose] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    start_date: new Date().toISOString().slice(0, 10),
-    end_date: new Date().toISOString().slice(0, 10),
-    description: '',
-    max_students: '',
-    status: '',
-  });
+  const students = useSelector((state) => state.listStudents.students);
 
-  const [errors, setErrors] = useState({});
+  const [newCourse, setNewCourse] = useState({
+    cr_name: '',
+    cr_startdate: '',
+    cr_enddate: '',
+    cr_description: '',
+    cr_nowst: 0,
+    cr_maxst: '',
+    cr_status: '',
+    students: [],
+  });
+  const [saving, setSaving] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState([]);
+
+  useEffect(() => {
+    dispatch(listStudents());
+  }, [dispatch]);
 
   const handleInputChange = (event) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value });
-  };
-
-  const validateForm = () => {
-    const requiredFields = ['name', 'start_date', 'end_date', 'max_students', 'status'];
-    const formErrors = {};
-
-    requiredFields.forEach((field) => {
-      if (formData[field] === '') {
-        formErrors[field] = 'Это поле обязательно для заполнения';
-      }
-    });
-
-    setErrors(formErrors);
-
-    // Если есть ошибки, возвращаем false
-    if (Object.keys(formErrors).length > 0) {
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleCreate = () => {
-    if (validateForm()) {
-      dispatch(createCourse(formData)).then(() => {
-        setSaved(true);
-        dispatch(listCourses());
-        setTimeout(() => {
-          setSaved(false);
-          handleCloseModal();
-        }, 1000);
-      });
-    }
-  };
-
-  const handleCloseModal = () => {
-    if (validateForm()) {
-      onClose();
-      setErrors({});
-      setFormData({
-        name: '',
-        start_date: new Date().toISOString().slice(0, 10),
-        end_date: new Date().toISOString().slice(0, 10),
-        description: '',
-        max_students: '',
-        status: '',
-      });
-    } else {
-      setConfirmClose(true);
-    }
-  };
-
-  const handleConfirmClose = () => {
-    setConfirmClose(false);
-    onClose();
-    setErrors({});
-    setFormData({
-      name: '',
-      start_date: new Date().toISOString().slice(0, 10),
-      end_date: new Date().toISOString().slice(0, 10),
-      description: '',
-      max_students: '',
-      status: '',
+    setNewCourse({
+      ...newCourse,
+      [event.target.name]: event.target.value,
     });
   };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const studentIds = selectedStudents.map((student) => student.value);
+      const courseData = {
+        ...newCourse,
+        students: studentIds,
+      };
+      await dispatch(createCourse(courseData));
+      setSnackbarMessage('Course created successfully');
+      setSnackbarOpen(true);
+      dispatch(listCourses());
+      setTimeout(() => {
+        onClose();
+        setSelectedStudents([]); // Очистить выбранных студентов после создания курса
+      }, 2000);
+    } catch (error) {
+      setSnackbarMessage('An error occurred while creating the course');
+      setSnackbarOpen(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const studentOptions = students.map((student) => ({
+    value: student.st_id,
+    label: `${student.st_surname} ${student.st_name} ${student.st_patronymic}`,
+  }));
 
   return (
-    <>
-      <Modal open={open} onClose={handleCloseModal}>
-        <Box className={classes.paper}>
-          <IconButton className={classes.closeBtn} onClick={handleCloseModal}>
-            <CloseIcon />
-          </IconButton>
-          <h2>Создание нового курса</h2>
+    <div>
+      <Dialog open={open} onClose={onClose}>
+        <DialogTitle>Create new course</DialogTitle>
+        <DialogContent>
           <TextField
-            name="name"
-            label="Имя курса"
-            value={formData.name}
-            onChange={handleInputChange}
-            error={!!errors.name}
-            helperText={errors.name}
+            autoFocus
+            margin="dense"
+            name="cr_name"
+            label="Course name"
             fullWidth
-            margin="normal"
+            onChange={handleInputChange}
           />
           <TextField
-            name="start_date"
-            label="Начало обучения"
+            margin="dense"
+            name="cr_startdate"
+            label="Start date"
             type="date"
-            value={formData.start_date}
-            onChange={handleInputChange}
-            error={!!errors.start_date}
-            helperText={errors.start_date}
             fullWidth
-            margin="normal"
+            onChange={handleInputChange}
             InputLabelProps={{
               shrink: true,
             }}
           />
           <TextField
-            name="end_date"
-            label="Конец обучения"
+            margin="dense"
+            name="cr_enddate"
+            label="End date"
             type="date"
-            value={formData.end_date}
-            onChange={handleInputChange}
-            error={!!errors.end_date}
-            helperText={errors.end_date}
             fullWidth
-            margin="normal"
+            onChange={handleInputChange}
             InputLabelProps={{
               shrink: true,
             }}
           />
           <TextField
-            name="description"
-            label="Описание курса"
+            margin="dense"
+            name="cr_description"
+            label="Description"
             multiline
             rows={4}
-            value={formData.description}
-            onChange={handleInputChange}
             fullWidth
-            margin="normal"
+            onChange={handleInputChange}
           />
           <TextField
-            name="max_students"
-            label="Максимальное количество студентов"
+            margin="dense"
+            name="cr_maxst"
+            label="Maximum number of students"
             type="number"
-            value={formData.max_students}
-            onChange={handleInputChange}
-            error={!!errors.max_students}
-            helperText={errors.max_students}
             fullWidth
-            margin="normal"
+            onChange={handleInputChange}
           />
-          <FormControl fullWidth margin="normal" className={classes.formControl}>
-            <InputLabel id="status-label">Статус</InputLabel>
-            <Select
-              labelId="status-label"
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-            >
-              <MenuItem value="Идет набор">Идет набор</MenuItem>
-              <MenuItem value="Обучается">Обучается</MenuItem>
-            </Select>
+          <TextField margin="dense" name="cr_status" label="Status" fullWidth onChange={handleInputChange} />
+          <FormControl fullWidth>
+            <ReactSelect
+              isMulti
+              options={studentOptions}
+              value={selectedStudents}
+              onChange={setSelectedStudents}
+              maxMenuHeight={500}
+              menuPlacement="top"
+            />
           </FormControl>
-          <Button variant="contained" color="primary" onClick={handleCreate}>
-            Создать
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <CircularProgress size={20} /> : 'Save'}
           </Button>
-          {saved && <p style={{ textAlign: 'center' }}>Сохранено успешно!</p>}
-        </Box>
-      </Modal>
-      <Modal open={confirmClose} onClose={() => setConfirmClose(false)}>
-        <Box className={classes.paper}>
-          <p>Вы действительно хотите закрыть? Все несохраненные данные будут потеряны.</p>
-          <Button variant="outlined" onClick={handleConfirmClose}>
-            Да, закрыть
-          </Button>
-          <Button variant="outlined" color="primary" onClick={() => setConfirmClose(false)}>
-            Нет, продолжить редактирование
-          </Button>
-        </Box>
-      </Modal>
-    </>
+        </DialogActions>
+
+        <Snackbar open={snackbarOpen} autoHideDuration={2000} onClose={handleSnackbarClose} message={snackbarMessage} />
+      </Dialog>
+    </div>
   );
-}
+};
+
+NewCourse.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+export default NewCourse;

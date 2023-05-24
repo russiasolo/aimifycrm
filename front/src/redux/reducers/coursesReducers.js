@@ -15,16 +15,48 @@ import {
   COURSE_UPDATE_RESET,
   COURSE_REMOVE_STUDENTS_SUCCESS,
   UPDATE_COURSE_STUDENTS_SUCCESS,
+  COURSE_DELETE_REQUEST,
+  COURSE_DELETE_SUCCESS,
+  COURSE_DELETE_FAIL,
 } from '../constans/coursesConstans';
 
-export const courseListReducer = (state = { courses: [] }, action) => {
+export const courseListReducer = (state = { loading: true, courses: [] }, action) => {
   switch (action.type) {
     case COURSE_LIST_REQUEST:
-      return { loading: true, courses: [] };
+      return {
+        ...state,
+        loading: true,
+        courses: [],
+      };
     case COURSE_LIST_SUCCESS:
-      return { loading: false, courses: action.payload };
+      return {
+        ...state,
+        loading: false,
+        courses: action.payload,
+      };
     case COURSE_LIST_FAIL:
-      return { loading: false, error: action.payload };
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case COURSE_DELETE_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+    case COURSE_DELETE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        courses: state.courses.filter((course) => course.cr_id !== action.payload),
+      };
+    case COURSE_DELETE_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
     default:
       return state;
   }
@@ -43,7 +75,7 @@ export const courseDetailsReducer = (state = { course: {} }, action) => {
   }
 };
 
-export const courseCreateReducer = (state = {}, action) => {
+export const courseCreateReducer = (state = { course: {} }, action) => {
   switch (action.type) {
     case COURSE_CREATE_REQUEST:
       return { loading: true };
@@ -52,7 +84,12 @@ export const courseCreateReducer = (state = {}, action) => {
     case COURSE_CREATE_FAIL:
       return { loading: false, error: action.payload };
     default:
-      return state;
+      return {
+        ...state,
+        course: {
+          ...state.course,
+        },
+      };
   }
 };
 

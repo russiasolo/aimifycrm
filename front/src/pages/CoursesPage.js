@@ -18,13 +18,12 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import { Container } from '@mui/material';
-
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 
 import Iconify from '../components/iconify/Iconify';
-import { listCourses } from '../redux/actions/coursesActions';
+import { listCourses, deleteCourse } from '../redux/actions/coursesActions';
 import EditCourse from '../components/modals/editCourse';
 import NewCourse from '../components/modals/newCourse';
 import Paginate from '../components/Paginate';
@@ -38,6 +37,12 @@ const Courses = () => {
   useEffect(() => {
     dispatch(listCourses());
   }, [dispatch]);
+
+  const handleDeleteCourse = (courseId) => {
+    if (window.confirm('Вы уверены, что хотите удалить этот курс?')) {
+      dispatch(deleteCourse(courseId));
+    }
+  };
 
   const [editCourseOpen, setEditCourseOpen] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
@@ -79,8 +84,10 @@ const Courses = () => {
 
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-      backgroundColor: theme.palette.common.white,
-      color: theme.palette.common.black,
+      backgroundColor: theme.palette.common.black,
+      color: theme.palette.common.white,
+      fontSize: 16,
+      fontWeight: 'bold',
     },
     [`&.${tableCellClasses.body}`]: {
       fontSize: 14,
@@ -94,6 +101,9 @@ const Courses = () => {
     '&:last-child td, &:last-child th': {
       border: 0,
     },
+    '&:hover': {
+      backgroundColor: theme.palette.action.selected,
+    },
   }));
 
   return (
@@ -103,7 +113,7 @@ const Courses = () => {
       </Helmet>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h3" gutterBottom>
           Курсы
         </Typography>
         <NewCourse open={open} onClose={handleCloseModal} />
@@ -116,6 +126,7 @@ const Courses = () => {
         <Table sx={{ minWidth: 700 }} aria-label="customized table">
           <TableHead>
             <TableRow>
+              <StyledTableCell align="center">№</StyledTableCell>
               <StyledTableCell align="center">Название курса</StyledTableCell>
               <StyledTableCell align="center">Длительность курса</StyledTableCell>
               <StyledTableCell align="center">Статус</StyledTableCell>
@@ -125,11 +136,12 @@ const Courses = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {courses?.map((courseCRM) => (
+            {courses?.map((courseCRM, index) => (
               <StyledTableRow key={courseCRM.cr_id}>
                 <StyledTableCell align="center" component="th" scope="row">
-                  {courseCRM.cr_name}
+                  {index + 1}
                 </StyledTableCell>
+                <StyledTableCell align="center">{courseCRM.cr_name}</StyledTableCell>
                 <StyledTableCell align="center">
                   {getCourseDuration(courseCRM.cr_startdate, courseCRM.cr_enddate)}
                 </StyledTableCell>
@@ -178,7 +190,7 @@ const Courses = () => {
                     <IconButton onClick={() => handleEditCourseOpen(courseCRM)}>
                       <EditOutlinedIcon color="primary" />
                     </IconButton>
-                    <IconButton onClick={console.log}>
+                    <IconButton onClick={() => handleDeleteCourse(courseCRM.cr_id)}>
                       <DeleteOutlinedIcon color="error" />
                     </IconButton>
                   </Stack>

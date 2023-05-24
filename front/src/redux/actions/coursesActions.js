@@ -15,6 +15,9 @@ import {
   UPDATE_COURSE_STUDENTS_SUCCESS,
   UPDATE_COURSE_STUDENTS_FAILURE,
   UPDATE_COURSE_STUDENTS_REQUEST,
+  COURSE_DELETE_REQUEST,
+  COURSE_DELETE_SUCCESS,
+  COURSE_DELETE_FAIL,
 } from '../constans/coursesConstans';
 
 export const listCourses = () => async (dispatch, getState) => {
@@ -87,13 +90,22 @@ export const createCourse = (courseData) => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axiosInstance.post('/api/courses/', courseData, config);
+    // Модифицируйте courseData, чтобы передавался только st_id студента
+    const modifiedCourseData = {
+      ...courseData,
+      students: courseData.students,
+    };
+
+    console.log('Creating course with data:', modifiedCourseData);
+
+    const { data } = await axiosInstance.post('/api/courses/', modifiedCourseData, config);
 
     dispatch({
       type: COURSE_CREATE_SUCCESS,
       payload: data,
     });
   } catch (error) {
+    console.log('Error creating course:', error); // Added error logging
     dispatch({
       type: COURSE_CREATE_FAIL,
       payload: error.response && error.response.data.message ? error.response.data.message : error.message,
@@ -157,6 +169,35 @@ export const updateCourseStudents = (courseId, studentIdsToAdd, studentIdsToRemo
     console.log('Error updating course students:', error);
     dispatch({
       type: UPDATE_COURSE_STUDENTS_FAILURE,
+      payload: error.response && error.response.data.message ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const deleteCourse = (courseId) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: COURSE_DELETE_REQUEST });
+
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${userInfo.access}`,
+      },
+    };
+
+    await axiosInstance.delete(`/api/courses/${courseId}/`, config);
+
+    dispatch({
+      type: COURSE_DELETE_SUCCESS,
+      payload: courseId,
+    });
+  } catch (error) {
+    console.log('Error deleting course:', error);
+    dispatch({
+      type: COURSE_DELETE_FAIL,
       payload: error.response && error.response.data.message ? error.response.data.message : error.message,
     });
   }
