@@ -1,105 +1,102 @@
 from rest_framework import serializers
-from .models import (
-    UserGroup,
-    Course,
-    Section,
-    Lesson,
-    CourseMaterial,
-    Enrollment,
-    Schedule,
-    Notification,
-    Report,
-    Payment,
-    Plan,
-    UserProfile,
-    Subscription,
-    UserSubscription,
-)
+from .models import StudentCRM, ContactsCRM, CourseCRM
 
 
-class UserGroupSerializer(serializers.ModelSerializer):
+class ContactsCRMSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserGroup
+        model = ContactsCRM
         fields = "__all__"
 
 
-class CourseSerializer(serializers.ModelSerializer):
+class StudentShortCRMSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Course
-        fields = "__all__"
+        model = StudentCRM
+        fields = ["st_id", "st_name", "st_surname", "st_patronymic"]
+
+    def create(self, validated_data):
+        return StudentCRM.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.st_name = validated_data.get("st_name", instance.st_name)
+        instance.st_surname = validated_data.get("st_surname", instance.st_surname)
+        instance.st_patronymic = validated_data.get(
+            "st_patronymic", instance.st_patronymic
+        )
+        instance.save()
+        return instance
 
 
-class SectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Section
-        fields = "__all__"
-
-
-class LessonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lesson
-        fields = "__all__"
-
-
-class CourseMaterialSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CourseMaterial
-        fields = "__all__"
-
-
-class EnrollmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Enrollment
-        fields = "__all__"
-
-
-class ScheduleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Schedule
-        fields = "__all__"
-
-
-class NotificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notification
-        fields = "__all__"
-
-
-class ReportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Report
-        fields = "__all__"
-
-
-class PaymentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment
-        fields = "__all__"
-
-
-class PlanSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Plan
-        fields = "__all__"
-
-
-class SubscriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Subscription
-        fields = "__all__"
-
-
-class UserSubscriptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserSubscription
-        fields = "__all__"
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    user_group = UserGroupSerializer(read_only=True)
-    enrollments = EnrollmentSerializer(many=True, read_only=True)
-    user_subscriptions = UserSubscriptionSerializer(many=True, read_only=True)
+class CourseCRMSerializer(serializers.ModelSerializer):
+    students = StudentShortCRMSerializer(many=True, required=False)
 
     class Meta:
-        model = UserProfile
+        model = CourseCRM
         fields = "__all__"
+
+    def update(self, instance, validated_data):
+        students_data = validated_data.pop("students", [])
+        instance = super().update(instance, validated_data)
+
+        # Add students
+        for student_data in students_data:
+            try:
+                student = StudentCRM.objects.get(st_id=student_data.get("st_id"))
+                instance.students.add(student)
+            except StudentCRM.DoesNotExist:
+                pass  # or you may raise a ValidationError
+
+        return instance
+
+
+class StudentCRMSerializer(serializers.ModelSerializer):
+    contacts = ContactsCRMSerializer(many=True, read_only=True)
+    courses = CourseCRMSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = StudentCRM
+        fields = [
+            "st_id",
+            "st_name",
+            "st_surname",
+            "st_patronymic",
+            "st_birthdate",
+            "st_gender",
+            "st_description",
+            "st_createdAt",
+            "contacts",
+            "courses",
+        ]
+
+
+class CourseStudentsUpdateSerializer(serializers.Serializer):
+    student_ids = serializers.ListField(child=serializers.IntegerField())
+    action = serializers.CharField()
+
+    def update(self, instance, validated_data):
+        students_data = validated_data.pop("students", [])
+        instance = super().update(instance, validated_data)
+
+        current_student_ids = [student.st_id for student in instance.students.all()]
+        new_student_ids = [student_data.get("st_id") for student_data in students_data]
+
+        # Find ids to add and remove
+        ids_to_add = set(new_student_ids) - set(current_student_ids)
+        ids_to_remove = set(current_student_ids) - set(new_student_ids)
+
+        # Add students
+        for student_id in ids_to_add:
+            try:
+                student = StudentCRM.objects.get(st_id=student_id)
+                instance.students.add(student)
+            except StudentCRM.DoesNotExist:
+                pass  # or you may raise a ValidationError
+
+        # Remove students
+        for student_id in ids_to_remove:
+            try:
+                student = StudentCRM.objects.get(st_id=student_id)
+                instance.students.remove(student)
+            except StudentCRM.DoesNotExist:
+                pass  # or you may raise a ValidationError
+
+            return instance
